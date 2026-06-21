@@ -22,7 +22,7 @@
 | Cline | 検出 / 未検出 | N件 | - |
 | Roo Code | 検出 / 未検出 | N件 | - |
 | Windsurf | 検出 / 未検出 | N件 | - |
-| Google Antigravity | 検出 / 未検出 | N件 | - |
+| Google Antigravity (CLI) | 検出 / 未検出 | N件 | - |
 | Gemini CLI | 検出 / 未検出 | N件 | YYYY-MM-DD HH:MM 〜 YYYY-MM-DD HH:MM |
 | OpenAI Codex | 検出 / 未検出 | N件 | YYYY-MM-DD HH:MM 〜 YYYY-MM-DD HH:MM |
 | OpenCode | 検出 / 未検出 | N件 | YYYY-MM-DD HH:MM 〜 YYYY-MM-DD HH:MM |

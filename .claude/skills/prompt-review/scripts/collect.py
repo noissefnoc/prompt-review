@@ -573,34 +573,64 @@ def collect_windsurf(cutoff_ms: int | None) -> dict:
 
 
 def collect_antigravity(cutoff_ms: int | None) -> dict:
-    """Google Antigravity のログを収集"""
-    result = {"tool": "Google Antigravity", "status": "未検出", "messages": [], "period": ""}
-
-    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if not brain_dir.exists():
-        return result
+    """Google Antigravity (CLI) のログを収集"""
+    result = {"tool": "Google Antigravity (CLI)", "status": "未検出", "messages": [], "period": ""}
 
     all_entries = []
-    for log_dir in brain_dir.glob("*/.system_generated/logs"):
-        for log_file in sorted(log_dir.rglob("*"), key=lambda p: p.stat().st_mtime, reverse=True)[:10]:
-            if not log_file.is_file() or log_file.suffix == ".pb":
-                continue
-            if cutoff_ms:
-                file_mtime_ms = int(log_file.stat().st_mtime * 1000)
-                if file_mtime_ms < cutoff_ms:
+    
+    # Antigravity (IDE) と Antigravity CLI の両方のパスを探索
+    for tool_dir_name in ["antigravity", "antigravity-cli"]:
+        brain_dir = Path.home() / ".gemini" / tool_dir_name / "brain"
+        if not brain_dir.exists():
+            continue
+
+        for log_dir in brain_dir.glob("*/.system_generated/logs"):
+            for log_file in sorted(log_dir.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)[:10]:
+                if not log_file.is_file():
                     continue
-            try:
-                text = log_file.read_text(encoding="utf-8").strip()
-                if text:
-                    file_mtime_ms = int(log_file.stat().st_mtime * 1000)
-                    all_entries.append({
-                        "text": text[:500],
-                        "timestamp": ts_to_iso(file_mtime_ms),
-                        "timestamp_ms": file_mtime_ms,
-                        "project": log_file.parent.parent.parent.name[:12],
-                    })
-            except (OSError, UnicodeDecodeError):
-                continue
+                
+                # Check file modification time as a rough filter first
+                file_mtime_ms = int(log_file.stat().st_mtime * 1000)
+                if cutoff_ms and file_mtime_ms < cutoff_ms:
+                    continue
+                
+                project_name = log_file.parent.parent.parent.name[:12]
+
+                try:
+                    with open(log_file, "r", encoding="utf-8") as f:
+                        msg_count = 0
+                        for line in f:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            try:
+                                entry = json.loads(line)
+                            except json.JSONDecodeError:
+                                continue
+                            
+                            if entry.get("source") == "USER_EXPLICIT" and entry.get("type") == "USER_INPUT":
+                                text = entry.get("content", "").strip()
+                                if not text:
+                                    continue
+                                
+                                # Extract timestamp if available
+                                created_at = entry.get("created_at")
+                                ts_ms = iso_to_ms(created_at) if created_at else file_mtime_ms
+                                
+                                if cutoff_ms and ts_ms and ts_ms < cutoff_ms:
+                                    continue
+                                
+                                all_entries.append({
+                                    "text": text[:500],
+                                    "timestamp": ts_to_iso(ts_ms) if ts_ms else "unknown",
+                                    "timestamp_ms": ts_ms or file_mtime_ms,
+                                    "project": project_name,
+                                })
+                                msg_count += 1
+                                if msg_count >= 100:
+                                    break
+                except (OSError, UnicodeDecodeError):
+                    continue
 
     if all_entries:
         result["status"] = "検出"

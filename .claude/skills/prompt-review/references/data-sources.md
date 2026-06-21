@@ -212,18 +212,20 @@ Cline と同じ手順。
 
 ---
 
-## 7. Google Antigravity
+## 7. Google Antigravity (CLI)
+
+IDE拡張機能（Google Antigravity）およびCLIツール（Antigravity CLI）の両方が対象。
 
 ### 保存場所
 | OS | パス |
 |----|------|
-| Windows | `%USERPROFILE%\.gemini\antigravity\brain\` |
-| macOS | `~/.gemini/antigravity/brain/` + `~/.gemini/antigravity/conversations/` |
-| Linux | `~/.gemini/antigravity/brain/` |
+| Windows | `%USERPROFILE%\.gemini\antigravity\brain\` および `%USERPROFILE%\.gemini\antigravity-cli\brain\` |
+| macOS | `~/.gemini/antigravity/brain/` および `~/.gemini/antigravity-cli/brain/` |
+| Linux | `~/.gemini/antigravity/brain/` および `~/.gemini/antigravity-cli/brain/` |
 
 ### ファイル構造
 ```
-~/.gemini/antigravity/
+~/.gemini/antigravity/  （または antigravity-cli/）
 ├── brain/
 │   └── {conversation-id}/
 │       └── .system_generated/
@@ -233,13 +235,13 @@ Cline と同じ手順。
 ```
 
 ### 抽出方法
-1. `~/.gemini/antigravity/brain/` 配下をGlobで探索
+1. `~/.gemini/antigravity/brain/` および `~/.gemini/antigravity-cli/brain/` 配下をGlobで探索
 2. `.system_generated/logs/` 内のテキストファイルを読み込み
 3. `.pb` ファイル（Protocol Buffers）はバイナリのため直接読み取り不可 → スキップ
 4. テキスト形式のログファイルのみ対象
 
 ### 注意事項
-- Antigravity は比較的新しいツールのため、ログ形式が変更される可能性がある
+- Antigravity系は比較的新しいツールのため、ログ形式が変更される可能性がある
 - `.gemini/` フォルダが削除されると会話リストは残るが内容は読めなくなる（既知のバグ）
 - Protocol Buffers 形式のファイルはテキストとして読めないためスキップする
 
